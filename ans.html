@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>RBI Grade B Descriptive Answer Practice</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9fc;
+      padding: 20px;
+      max-width: 950px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+      color: #2d2d5c;
+    }
+    .developer {
+      text-align: center;
+      color: red;
+      margin-top: -10px;
+      font-weight: bold;
+    }
+    .question-box {
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin-top: 20px;
+      position: relative;
+      border-radius: 12px;
+    }
+    .label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      position: relative;
+    }
+    .timer {
+      position: absolute;
+      right: 10px;
+      top: 0;
+      color: #b30000;
+      font-size: 14px;
+    }
+    .word-count {
+      background: #0047ab;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 13px;
+    }
+    textarea {
+      width: 95%;
+      height: 120px;
+      padding: 10px;
+      font-size: 15px;
+      border: 1px solid #000;
+      resize: none;
+      margin: 10px auto;
+      display: block;
+      border-radius: 10px;
+      box-sizing: border-box;
+    }
+    .bottom-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+    }
+    button {
+      padding: 8px 16px;
+      background-color: #0047ab;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 15px;
+      border-radius: 8px;
+    }
+    button:hover {
+      background-color: #003080;
+    }
+    .radio-group {
+      background: #fff;
+      padding: 10px 20px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      display: inline-block;
+    }
+    .radio-group label {
+      margin-right: 15px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+<script>
+  // Disable Right Click
+  document.addEventListener("contextmenu", function (e) {
+    e.preventDefault();
+  });
+
+  // Disable Ctrl + U and F12
+  document.addEventListener("keydown", function (e) {
+    // Ctrl+U or F12 or Ctrl+Shift+I
+    if ((e.ctrlKey && e.key === 'u') || 
+        (e.key === 'F12') || 
+        (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+      e.preventDefault();
+    }
+  });
+</script>
+
+<!-- Radio Buttons -->
+<div class="radio-group">
+  <label>Test you want to take:</label>
+  <input type="radio" name="testType" value="esifm" checked /> ESI/FM
+  <input type="radio" name="testType" value="essay" /> Essay
+  <input type="radio" name="testType" value="precis" /> Precis
+</div>
+
+<!-- Title -->
+<h1>RBI Grade B – Descriptive Answer Practice</h1>
+<div class="developer">(Developed by A.K. Anshu)</div>
+
+<!-- Question Container -->
+<div id="question-container"></div>
+
+<script>
+  const questionContainer = document.getElementById("question-container");
+
+  const tests = {
+    esifm: [
+      { id: "15", label: "15-Mark Question", words: 600, time: 30 },
+      { id: "10", label: "10-Mark Question", words: 400, time: 15 }
+    ],
+    essay: [
+      { id: "essay", label: "Essay Question (50 Marks)", words: 600, time: 50 }
+    ],
+    precis: [
+      { id: "precis", label: "Precis Question (30 Marks)", words: 150, time: 20 }
+    ]
+  };
+
+  let timers = {}; // <--- make this let, not const
+
+  function createQuestion({ id, label, words, time }) {
+    const box = document.createElement("div");
+    box.className = "question-box";
+    box.innerHTML = `
+      <div class="label">
+        📝 ${label} (${words} words | ${time} minutes)
+        <span class="timer" id="timer-${id}">Time Left: ${time}:00</span>
+      </div>
+      <div contenteditable="true" id="q-${id}" placeholder="Type your question here..." style="background:#f2f2f2;padding:10px;border-radius:8px;margin-top:10px;"></div>
+      <textarea id="ans-${id}" placeholder="Write your answer here..."></textarea>
+      <div class="bottom-meta">
+        <span class="word-count" id="count-${id}">0 / ${words}</span>
+        <button onclick="submitAnswer('${id}', ${words})">Submit</button>
+      </div>
+    `;
+    setTimeout(() => {
+      document.getElementById(`ans-${id}`).addEventListener("input", () => {
+        startTimer(id, time);
+        updateCount(id, words);
+      });
+      document.getElementById(`q-${id}`).addEventListener("input", () => {
+        localStorage.setItem(`q-${id}`, document.getElementById(`q-${id}`).innerText);
+      });
+    }, 50);
+    return box;
+  }
+
+  function updateCount(id, maxWords) {
+    const answer = document.getElementById(`ans-${id}`).value.trim();
+    const wordCount = answer ? answer.split(/\s+/).length : 0;
+    document.getElementById(`count-${id}`).innerText = `${wordCount} / ${maxWords}`;
+  }
+
+  function startTimer(id, timeInMinutes) {
+    if (timers[id]) return;
+    timers[id] = true;
+
+    let time = timeInMinutes * 60;
+    const timerDisplay = document.getElementById(`timer-${id}`);
+    const textarea = document.getElementById(`ans-${id}`);
+
+    const interval = setInterval(() => {
+      const min = Math.floor(time / 60);
+      const sec = time % 60;
+      timerDisplay.textContent = `Time Left: ${min}:${sec.toString().padStart(2, '0')}`;
+      time--;
+      if (time < 0) {
+        clearInterval(interval);
+        timerDisplay.textContent = "Time's up!";
+        textarea.disabled = true;
+      }
+    }, 1000);
+  }
+
+  function submitAnswer(id, words) {
+    const question = document.getElementById(`q-${id}`).innerText.trim();
+    const answer = document.getElementById(`ans-${id}`).value.trim();
+    const content = `Question: ${question}\n\nAnswer:\n${answer}`;
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `RBI_Answer_${id}.txt`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function loadTest(type) {
+    questionContainer.innerHTML = "";
+    timers = {}; // Now allowed since timers is declared with let
+    const questions = tests[type];
+    questions.forEach(q => {
+      const saved = localStorage.getItem(`q-${q.id}`);
+      const element = createQuestion(q);
+      questionContainer.appendChild(element);
+      if (saved) document.getElementById(`q-${q.id}`).innerText = saved;
+    });
+  }
+
+  document.querySelectorAll("input[name='testType']").forEach(input => {
+    input.addEventListener("change", () => {
+      loadTest(input.value);
+    });
+  });
+
+  // Default load
+  loadTest("esifm");
+</script>
+
+</body>
+</html>
